@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css">
+    <style>
+      canvas {
+        border: 1px solid #000;
+      }
+    </style>
+    <title>Move Circle</title>
+  </head>
+  <body>
+    <nav>
+      <form id="username" action="" onsubmit="submitForm(event)" style="margin-top: 5px; margin-bottom: 5px;">
+        <input id="usernameinput" autocomplete="off" placeholder="Nickname" style="color: black;"/>
+        <br>
+        <label for="favcolor">Give your circle your favourite color!</label>
+        <input type="color" name="favcolor" id="favcolor" style="border-radius: 100%;">
+        <br>
+        <button type="submit" style="color: black;">Submit</button>
+      </form>
+      <button onclick="window.location.reload()" style="color: black; float: right; padding: 5px; border-radius: 15px;">Start Over</button>
+    </nav>
+    <br>
+    <div id="maincontainer">
+      <h1>Circle Mover!</h1>
+      <canvas id="myCanvas" width="600" height="400"></canvas>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+      // Canvas
+      const canvas = document.getElementById("myCanvas")
+      const ctx = canvas.getContext("2d")
+
+      const devicePixelRatio = window.devicePixelRatio || 1;
+
+      canvas.width = canvas.width * devicePixelRatio;
+      canvas.height = canvas.height * devicePixelRatio;
+
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+
+      ctx.imageSmoothingEnabled = false;
+
+      const socket = io()
+
+      // Basdata för cirklarna
+      let circleX = 50
+      let circleY = 50
+      const circleRadius = 20
+      let circleColor = "blue"
+      let username = "";
+      const speed = 2;
+
+      // Array för users data
+      const users = {};
+
+      const movement = {
+        up: false,
+        down: false,
+        left: false,
+        right: false
+      };
+
+      // Funktionen som ritar cirklarna
+      function drawCircle(x, y, color, username) {
+        ctx.beginPath();
+        ctx.arc(x, y, circleRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = '8px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'white'; // Set text color
+        ctx.fillText(username, x, y);
+      }
+
+      // Funktionen som kallar alla users cirklar och ritar dem efter att ha clearat canvas
+      function drawAllUsers() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (const userId in users) {
+          const user = users[userId];
+          drawCircle(user.x, user.y, user.color, user.username);
+        }
+      }
+
+      // Key press listen-funktionen, keyUpdateInterval skapar en mjukare rörelse
+      const keyUpdateInterval = 16;
+      let keyUpdateTimer;
+
+      function handleKeyPress(event) {
+        switch (event.key) {
+          case "ArrowUp":
+          case "w":
+            movement.up = true;
+            break;
+          case "ArrowDown":
+          case "s":
+            movement.down = true;
+            break;
+          case "ArrowLeft":
+          case "a":
+            movement.left = true;
+            break;
+          case "ArrowRight":
+          case "d":
+            movement.right = true;
+            break;
+        }
+
+        if (!keyUpdateTimer) {
+          keyUpdateTimer = setInterval(updatePosition, keyUpdateInterval);
+        }
+      }
+
+      function handleKeyRelease(event) {
+        switch (event.key) {
+          case "ArrowUp":
+          case "w":
+            movement.up = false;
+            break;
+          case "ArrowDown":
+          case "s":
+            movement.down = false;
+            break;
+          case "ArrowLeft":
+          case "a":
+            movement.left = false;
+            break;
+          case "ArrowRight":
+          case "d":
+            movement.right = false;
+            break;
+        }
+
+        // Clear the interval timer when no keys are pressed
+        if (!movement.up && !movement.down && !movement.left && !movement.right) {
+          clearInterval(keyUpdateTimer);
+          keyUpdateTimer = null;
+        }
+      }
+
+
+      function updatePosition() {
+        let dx = 0;
+        let dy = 0;
+
+        if (movement.up) dy -= 1;
+        if (movement.down) dy += 1;
+        if (movement.left) dx -= 1;
+        if (movement.right) dx += 1;
+
+        if (dx !== 0 || dy !== 0) {
+          circleX += dx * speed;
+          circleY += dy * speed;
+
+          drawCircle(circleX, circleY, circleColor);
+          socket.emit("updatePosition", { id: socket.id, x: circleX, y: circleY, color: circleColor, username: username});
+        }
+      }
+
+      // Sparar all användardata som inmatats i formuläret i början, och gömmer sedan formuläret
+      function submitForm(event) {
+        event.preventDefault();
+
+        username = document.getElementById("usernameinput").value;
+        const favColor = document.getElementById("favcolor").value;
+        circleColor = favColor;
+
+        socket.emit("newUser", { username, color: circleColor, x: circleX, y: circleY });
+
+        document.addEventListener("keydown", handleKeyPress);
+        document.addEventListener("keyup", handleKeyRelease);
+        document.getElementById("username").style.display = "none";
+        drawAllUsers();
+      }
+
+      // Uppdaterar users cirklar med ny information
+      socket.on("updateUsers", (updatedUsers) => {
+        for (const userId in updatedUsers) {
+          const updatedUser = updatedUsers[userId];
+          users[userId] = { ...users[userId], ...updatedUser };
+        }
+        drawAllUsers();
+      });
+
+      // Uppdaterar positionen av flyttade cirkeln för alla users
+      socket.on("updatePosition", (data) => {
+        users[data.id] = data;
+        drawAllUsers();
+      });
+    </script>
+  </body>
+</html>

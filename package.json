@@ -1,0 +1,10 @@
+{
+    "name": "slutprojekt-prog2",
+    "version": "0.0.1",
+    "description": "my socket.io & sql database project ",
+    "dependencies": {
+        "express": "^4.19.2",
+        "mysql": "^2.18.1",
+        "sql": "^0.78.0"
+    }
+}
