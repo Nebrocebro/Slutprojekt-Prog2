@@ -4,7 +4,8 @@
     "description": "my socket.io & sql database project ",
     "dependencies": {
         "express": "^4.19.2",
+        "multer": "^1.4.5-lts.1",
         "mysql": "^2.18.1",
-        "sql": "^0.78.0"
+        "path": "^0.12.7"
     }
 }

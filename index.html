@@ -13,12 +13,19 @@
   </head>
   <body>
     <nav>
-      <form id="username" action="" onsubmit="submitForm(event)" style="margin-top: 5px; margin-bottom: 5px;">
-        <input id="usernameinput" autocomplete="off" placeholder="Nickname" style="color: black;"/>
-        <br>
-        <label for="favcolor">Give your circle your favourite color!</label>
-        <input type="color" name="favcolor" id="favcolor" style="border-radius: 100%;">
-        <br>
+      <form id="addUserForm" action="/addUser" onsubmit="submitForm(event)" method="post" enctype="multipart/form-data" style="margin-top: 5px; margin-bottom: 5px;">
+        <label for="username">* Username:</label>
+        <input type="text" id="usernameinput" name="username" autocomplete="off" placeholder="Nickname" style="color: black;" required/><br>
+
+        <label for="passwd">* Password:</label>
+        <input type="password" id="passwd" name="passwd" required><br>
+            
+        <label for="profilePic">Profile Picture (Not required):</label>
+        <input type="file" id="profilePic" name="profilePic"><br>
+
+        <label for="circolor">Give your blob your favourite color! (Not required)</label>
+        <input type="color" name="circolor" id="circolor" style="border-radius: 100%;"><br>
+
         <button type="submit" style="color: black;">Submit</button>
       </form>
       <button onclick="window.location.reload()" style="color: black; float: right; padding: 5px; border-radius: 15px;">Start Over</button>
@@ -167,14 +174,14 @@
         event.preventDefault();
 
         username = document.getElementById("usernameinput").value;
-        const favColor = document.getElementById("favcolor").value;
+        const favColor = document.getElementById("circolor").value;
         circleColor = favColor;
 
         socket.emit("newUser", { username, color: circleColor, x: circleX, y: circleY });
 
         document.addEventListener("keydown", handleKeyPress);
         document.addEventListener("keyup", handleKeyRelease);
-        document.getElementById("username").style.display = "none";
+        document.getElementById("addUserForm").style.display = "none";
         drawAllUsers();
       }
 
