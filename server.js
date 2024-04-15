@@ -8,6 +8,7 @@ var mysql = require("mysql");
 const bodyParser = require("body-parser");
 var path = require("path");
 var multer = require("multer");
+var crypto = require("crypto");
 
 var storage = multer.diskStorage({
   destination: "./public/profPics/",
@@ -42,14 +43,14 @@ app.use("/public", express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-function processUserInput(inputArray) {
-  for (let input of inputArray) {
-    if (!/^[a-zA-Z0-9.@]+$/.test(input)) {
-      return false;
-    }
-  }
-  return true;
-}
+// function processUserInput(inputArray) {
+//   for (let input of inputArray) {
+//     if (!/^[a-zA-Z0-9.@]+#$/.test(input)) {
+//       return false;
+//     }
+//   }
+//   return true;
+// }
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
@@ -63,13 +64,14 @@ app.post("/addUser", upload.single("profilePic"), (req, res) => {
   const profilePic = req.file.filename;
   const insertQuery = `INSERT INTO users (username, passwd, circolor, profilepic) VALUES (?, ?, ?, ?)`;
   const values = [username, passwd, circolor, profilePic];
-  const isValid = processUserInput(values);
+  console.log(req.body, profilePic);
+  // const isValid = processUserInput(values);
 
-  if (!isValid) {
-    console.error("Error inserting data into the database: Invalid input. ");
-    res.sendStatus(422);
-    return;
-  }
+  // if (!isValid) {
+  //   console.error("Error inserting data into the database: Invalid input. ");
+  //   res.sendStatus(422);
+  //   return;
+  // }
 
   conn.query(insertQuery, values, (err, result) => {
     if (err) {

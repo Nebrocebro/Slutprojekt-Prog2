@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="public/style.css">
     <style>
       canvas {
         border: 1px solid #000;
@@ -13,12 +13,12 @@
   </head>
   <body>
     <nav>
-      <form id="addUserForm" action="/addUser" onsubmit="submitForm(event)" method="post" enctype="multipart/form-data" style="margin-top: 5px; margin-bottom: 5px;">
+      <form id="addUserForm" action="/addUser" method="post" enctype="multipart/form-data" style="margin-top: 5px; margin-bottom: 5px;">
         <label for="username">* Username:</label>
         <input type="text" id="usernameinput" name="username" autocomplete="off" placeholder="Nickname" style="color: black;" required/><br>
 
         <label for="passwd">* Password:</label>
-        <input type="password" id="passwd" name="passwd" required><br>
+        <input type="password" id="passwd" name="passwd" style="color: #000;" required><br>
             
         <label for="profilePic">Profile Picture (Not required):</label>
         <input type="file" id="profilePic" name="profilePic"><br>
