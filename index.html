@@ -33,7 +33,7 @@
     <br>
     <div id="maincontainer">
       <h1>Circle Mover!</h1>
-      <canvas id="myCanvas" width="600" height="400"></canvas>
+      <canvas id="myCanvas" width="600" height="600"></canvas>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
@@ -63,12 +63,46 @@
       // Array för users data
       const users = {};
 
+      const foods = [];
+
       const movement = {
         up: false,
         down: false,
         left: false,
         right: false
       };
+
+      function getRandomInt(min, max) {
+        const minCeiled = Math.ceil(min);
+        const maxFloored = Math.floor(max);
+        return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
+      }
+
+      function Food(rad) {
+        this.x = getRandomInt(20, canvas.width - 20);
+        this.y = getRandomInt(20, canvas.height - 20);
+        this.rad = rad;
+        this.color = "green";
+        this.username = "";
+        this.show = function() {
+          ctx.beginPath();
+          ctx.arc(x, y, rad, 0, 2 * Math.PI);
+          ctx.fillStyle = this.color;
+          ctx.fill(255);
+          ctx.stroke();
+        }
+      }
+
+      function startGame() {
+        for (var j = 0; j < 10; j++) {
+          foods[j] = new Food(5);
+
+          // foods[j].x = getRandomInt(20, canvas.width - 20);
+          // foods[j].y = getRandomInt(20, canvas.height - 20);
+          // foods[j].color = "green";
+          // foods[j].username = "";
+        }
+      }
 
       // Funktionen som ritar cirklarna
       function drawCircle(x, y, color, username) {
@@ -85,6 +119,8 @@
         ctx.fillText(username, x, y);
       }
 
+      //-----------
+
       // Funktionen som kallar alla users cirklar och ritar dem efter att ha clearat canvas
       function drawAllUsers() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -92,7 +128,12 @@
           const user = users[userId];
           drawCircle(user.x, user.y, user.color, user.username);
         }
+        for (var i = 0; i < foods.length; i++) {
+          foods[i].show();
+        }
       }
+
+      //------------
 
       // Key press listen-funktionen, keyUpdateInterval skapar en mjukare rörelse
       const keyUpdateInterval = 16;

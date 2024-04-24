@@ -4,8 +4,8 @@ const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
-var mysql = require("mysql");
-const bodyParser = require("body-parser");
+// var mysql = require("mysql");
+// const bodyParser = require("body-parser");
 var path = require("path");
 var multer = require("multer");
 var crypto = require("crypto");
@@ -23,81 +23,81 @@ var storage = multer.diskStorage({
 
 var upload = multer({ storage: storage });
 
-const conn = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "slutprojekt_prog2",
-});
+// const conn = mysql.createConnection({
+//   host: "localhost",
+//   user: "root",
+//   password: "",
+//   database: "slutprojekt_prog2",
+// });
 
-conn.connect((err) => {
-  if (err) {
-    console.error("Error connecting to MySQL database: " + err.stack);
-    return;
-  }
-  console.log("Connected to MySQL database");
-});
-
-app.use(express.json());
-app.use("/public", express.static("public"));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-
-// function processUserInput(inputArray) {
-//   for (let input of inputArray) {
-//     if (!/^[a-zA-Z0-9.@]+#$/.test(input)) {
-//       return false;
-//     }
+// conn.connect((err) => {
+//   if (err) {
+//     console.error("Error connecting to MySQL database: " + err.stack);
+//     return;
 //   }
-//   return true;
-// }
+//   console.log("Connected to MySQL database");
+// });
+
+// app.use(express.json());
+// app.use("/public", express.static("public"));
+// app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(bodyParser.json());
+
+// // function processUserInput(inputArray) {
+// //   for (let input of inputArray) {
+// //     if (!/^[a-zA-Z0-9.@]+#$/.test(input)) {
+// //       return false;
+// //     }
+// //   }
+// //   return true;
+// // }
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
-const users = {};
+// const users = {};
 
-var thisUserId = "";
-app.post("/addUser", upload.single("profilePic"), (req, res) => {
-  const { username, passwd, circolor } = req.body;
-  const profilePic = req.file.filename;
-  const insertQuery = `INSERT INTO users (username, passwd, circolor, profilepic) VALUES (?, ?, ?, ?)`;
-  const values = [username, passwd, circolor, profilePic];
-  console.log(req.body, profilePic);
-  // const isValid = processUserInput(values);
+// var thisUserId = "";
+// app.post("/addUser", upload.single("profilePic"), (req, res) => {
+//   const { username, passwd, circolor } = req.body;
+//   const profilePic = req.file.filename;
+//   const insertQuery = `INSERT INTO users (username, passwd, circolor, profilepic) VALUES (?, ?, ?, ?)`;
+//   const values = [username, passwd, circolor, profilePic];
+//   console.log(req.body, profilePic);
+//   // const isValid = processUserInput(values);
 
-  // if (!isValid) {
-  //   console.error("Error inserting data into the database: Invalid input. ");
-  //   res.sendStatus(422);
-  //   return;
-  // }
+//   // if (!isValid) {
+//   //   console.error("Error inserting data into the database: Invalid input. ");
+//   //   res.sendStatus(422);
+//   //   return;
+//   // }
 
-  conn.query(insertQuery, values, (err, result) => {
-    if (err) {
-      console.error("Error inserting data into the database: " + err.stack);
-      res.sendStatus(500);
-      return;
-    }
+//   conn.query(insertQuery, values, (err, result) => {
+//     if (err) {
+//       console.error("Error inserting data into the database: " + err.stack);
+//       res.sendStatus(500);
+//       return;
+//     }
 
-    console.log("Inserted into database with ID: " + result.insertId);
-    res.redirect("/");
-    thisUserId = result.insertId;
-  });
-});
+//     console.log("Inserted into database with ID: " + result.insertId);
+//     res.redirect("/");
+//     thisUserId = result.insertId;
+//   });
+// });
 
-app.get("/updateUserInfo", (req, res) => {
-  const searchId = thisUserId;
-  const UNQuery = `SELECT username, profilepic FROM users WHERE id = ?`;
-  conn.query(UNQuery, searchId, (err, results) => {
-    if (err) {
-      console.error("Error retrieving data from the database: " + err.stack);
-      res.sendStatus(500);
-      return;
-    }
-    res.json(results);
-  });
-});
+// app.get("/updateUserInfo", (req, res) => {
+//   const searchId = thisUserId;
+//   const UNQuery = `SELECT username, profilepic FROM users WHERE id = ?`;
+//   conn.query(UNQuery, searchId, (err, results) => {
+//     if (err) {
+//       console.error("Error retrieving data from the database: " + err.stack);
+//       res.sendStatus(500);
+//       return;
+//     }
+//     res.json(results);
+//   });
+// });
 
 
 io.on("connection", (socket) => {
