@@ -13,7 +13,8 @@
   </head>
   <body>
     <nav>
-      <form id="addUserForm" action="/addUser" method="post" enctype="multipart/form-data" style="margin-top: 5px; margin-bottom: 5px;">
+      <!-- Lägg till action="/addUser" och method="post" när "spelet" är klart -->
+      <form id="addUserForm" onsubmit="submitForm(event)" enctype="multipart/form-data" style="margin-top: 5px; margin-bottom: 5px;">
         <label for="username">* Username:</label>
         <input type="text" id="usernameinput" name="username" autocomplete="off" placeholder="Nickname" style="color: black;" required/><br>
 
@@ -86,7 +87,7 @@
         this.username = "";
         this.show = function() {
           ctx.beginPath();
-          ctx.arc(x, y, rad, 0, 2 * Math.PI);
+          ctx.arc(this.x, this.y, this.rad, 0, 2 * Math.PI);
           ctx.fillStyle = this.color;
           ctx.fill(255);
           ctx.stroke();
@@ -224,6 +225,7 @@
         document.addEventListener("keyup", handleKeyRelease);
         document.getElementById("addUserForm").style.display = "none";
         drawAllUsers();
+        startGame();
       }
 
       // Uppdaterar users cirklar med ny information
@@ -233,12 +235,14 @@
           users[userId] = { ...users[userId], ...updatedUser };
         }
         drawAllUsers();
+        startGame();
       });
 
       // Uppdaterar positionen av flyttade cirkeln för alla users
       socket.on("updatePosition", (data) => {
         users[data.id] = data;
         drawAllUsers();
+        startGame();
       });
     </script>
   </body>
