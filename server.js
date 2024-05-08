@@ -58,35 +58,35 @@ app.get("/", (req, res) => {
 
 const users = {};
 
-var thisUserId = "";
-app.post("/addUser", upload.single("profilePic"), (req, res) => {
-  const username = req.body.username;
-  const passwd = req.body.passwd;
-  const circolor = req.body.circolor;
-  const profilePic = req.file.filename;
-  const insertQuery = `INSERT INTO users (username, passwd, favcolor, profilepic) VALUES (?, ?, ?, ?)`;
-  const values = [username, passwd, circolor, profilePic];
-  console.log(values);
-  // const isValid = processUserInput(values);
+// var thisUserId = "";
+// app.post("/addUser", upload.single("profilePic"), (req, res) => {
+//   const username = req.body.username;
+//   const passwd = req.body.passwd;
+//   const circolor = req.body.circolor;
+//   const profilePic = req.file.filename;
+//   const insertQuery = `INSERT INTO users (username, passwd, favcolor, profilepic) VALUES (?, ?, ?, ?)`;
+//   const values = [username, passwd, circolor, profilePic];
+//   console.log(values);
+//   // const isValid = processUserInput(values);
 
-  // if (!isValid) {
-  //   console.error("Error inserting data into the database: Invalid input. ");
-  //   res.sendStatus(422);
-  //   return;
-  // }
+//   // if (!isValid) {
+//   //   console.error("Error inserting data into the database: Invalid input. ");
+//   //   res.sendStatus(422);
+//   //   return;
+//   // }
 
-  conn.query(insertQuery, values, (err, result) => {
-    if (err) {
-      console.error("Error inserting data into the database: " + err.stack);
-      res.sendStatus(500);
-      return;
-    }
+//   conn.query(insertQuery, values, (err, result) => {
+//     if (err) {
+//       console.error("Error inserting data into the database: " + err.stack);
+//       res.sendStatus(500);
+//       return;
+//     }
 
-    console.log("Inserted into database with ID: " + result.insertId);
-    res.redirect("/");
-    thisUserId = result.insertId;
-  });
-});
+//     console.log("Inserted into database with ID: " + result.insertId);
+//     res.redirect("/");
+//     thisUserId = result.insertId;
+//   });
+// });
 
 // app.get("/updateUserInfo", (req, res) => {
 //   const searchId = thisUserId;

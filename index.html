@@ -79,21 +79,42 @@
         return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
       }
 
+      const foodPos = [];
+
       function Food(rad) {
         this.x = getRandomInt(20, canvas.width - 20);
         this.y = getRandomInt(20, canvas.height - 20);
+        foodPos.push({ foodX: this.x, foodY: this.y })
         this.rad = rad;
         this.color = "green";
         this.username = "";
+        console.log(foodPos, foods, foodList);
         this.show = function() {
-          ctx.beginPath();
-          ctx.arc(this.x, this.y, this.rad, 0, 2 * Math.PI);
-          ctx.fillStyle = this.color;
-          ctx.fill(255);
-          ctx.stroke();
+          for (var g = 0; g < foodPos.length; g++) {
+            const { foodX, foodY } = foodPos[g];
+            ctx.beginPath();
+            ctx.arc(foodX, foodY, this.rad, 0, 2 * Math.PI);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+            ctx.stroke();
+            console.log(foodPos, foods, foodList);
+          }
+          startRound = false;
+          // if (startRound == false) {
+          //   stuckX = this.x;
+          //   stuckY = this.y;
+          //   ctx.arc(stuckX, stuckY, this.rad, 0, 2 * Math.PI);
+          // } else {
+          //   ctx.arc(this.x, this.y, this.rad, 0, 2 * Math.PI);
+          //   ctx.fillStyle = this.color;
+          //   ctx.fill();
+          //   ctx.stroke();
+          //   startRound = false;
+          // }
         }
       }
 
+      var startRound = false;
       function startGame() {
         for (var j = 0; j < 10; j++) {
           foods[j] = new Food(5);
@@ -103,6 +124,7 @@
           // foods[j].color = "green";
           // foods[j].username = "";
         }
+        startRound = true;
       }
 
       // Funktionen som ritar cirklarna
@@ -122,6 +144,8 @@
 
       //-----------
 
+      const foodList = [];
+
       // Funktionen som kallar alla users cirklar och ritar dem efter att ha clearat canvas
       function drawAllUsers() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -130,7 +154,8 @@
           drawCircle(user.x, user.y, user.color, user.username);
         }
         for (var i = 0; i < foods.length; i++) {
-          foods[i].show();
+          foodList.push(foods[i].show(foods.length));
+          // const { foodX, foodY } = foodPos[i];
         }
       }
 
