@@ -29,6 +29,7 @@
 
         <button type="submit" style="color: black;">Submit</button>
       </form>
+      <button onclick="submitForm(event)" style="color: black; float: right; padding: 5px; border-radius: 15px;">Start Game</button>
       <button onclick="window.location.reload()" style="color: black; float: right; padding: 5px; border-radius: 15px;">Start Over</button>
     </nav>
     <br>
@@ -38,237 +39,447 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
-      // Canvas
+      // // Canvas
+      // const canvas = document.getElementById("myCanvas")
+      // const ctx = canvas.getContext("2d")
+
+      // const devicePixelRatio = window.devicePixelRatio || 1;
+
+      // canvas.width = canvas.width * devicePixelRatio;
+      // canvas.height = canvas.height * devicePixelRatio;
+
+      // ctx.scale(devicePixelRatio, devicePixelRatio);
+
+      // ctx.imageSmoothingEnabled = false;
+
+      // const socket = io()
+
+      // // Basdata för cirklarna
+      // let circleX = 50
+      // let circleY = 50
+      // const circleRadius = 20
+      // let circleColor = "blue"
+      // let username = "";
+      // const speed = 2;
+
+      // // Array för users data
+      // let users = [];
+
+      // let foods = [];
+
+      // const movement = {
+      //   up: false,
+      //   down: false,
+      //   left: false,
+      //   right: false
+      // };
+
+      // function getRandomInt(min, max) {
+      //   const minCeiled = Math.ceil(min);
+      //   const maxFloored = Math.floor(max);
+      //   return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
+      // }
+
+      // const foodPos = [];
+
+      // function Food(rad) {
+      //   this.x = getRandomInt(20, canvas.width - 20);
+      //   this.y = getRandomInt(20, canvas.height - 20);
+      //   const foodX = this.x;
+      //   const foodY = this.Y;
+      //   // foodPos.push({ foodX: this.x, foodY: this.y })
+      //   this.rad = rad;
+      //   this.color = "green";
+      //   this.username = "";
+      //   // console.log(this.x, this.y);
+      //   // console.log(foodPos, foods, foodList);
+      //   this.show = function() {
+      //     // for (var g = 0; g < foodPos.length; g++) {
+      //       // const { foodX, foodY } = foodPos[g];
+      //       ctx.beginPath();
+      //       ctx.arc(this.x, this.y, this.rad, 0, 2 * Math.PI);
+      //       ctx.fillStyle = this.color;
+      //       ctx.fill();
+      //       ctx.stroke();
+      //       // console.log(this.x, this.y);
+      //       // console.log(foodPos, foods, foodList);
+      //     // }
+      //     startRound = false;
+      //     // if (startRound == false) {
+      //     //   stuckX = this.x;
+      //     //   stuckY = this.y;
+      //     //   ctx.arc(stuckX, stuckY, this.rad, 0, 2 * Math.PI);
+      //     // } else {
+      //     //   ctx.arc(this.x, this.y, this.rad, 0, 2 * Math.PI);
+      //     //   ctx.fillStyle = this.color;
+      //     //   ctx.fill();
+      //     //   ctx.stroke();
+      //     //   startRound = false;
+      //     // }
+      //   }
+      // }
+
+      // var startRound = false;
+      // function startGame() {
+      //   for (var j = 0; j < 10; j++) {
+      //     foods[j] = new Food(5);
+
+      //     // foods[j].x = getRandomInt(20, canvas.width - 20);
+      //     // foods[j].y = getRandomInt(20, canvas.height - 20);
+      //     // foods[j].color = "green";
+      //     // foods[j].username = "";
+      //   }
+      //   startRound = true;
+      // }
+
+      // // Funktionen som ritar cirklarna
+      // function drawCircle(x, y, color, username) {
+      //   ctx.beginPath();
+      //   ctx.arc(x, y, circleRadius, 0, 2 * Math.PI);
+      //   ctx.fillStyle = color;
+      //   ctx.fill();
+      //   ctx.stroke();
+
+      //   ctx.font = '8px Arial';
+      //   ctx.textAlign = 'center';
+      //   ctx.textBaseline = 'middle';
+      //   ctx.fillStyle = 'white'; // Set text color
+      //   ctx.fillText(username, x, y);
+      // }
+
+      // //-----------
+
+      // const foodList = [];
+
+      // // Funktionen som kallar alla users cirklar och ritar dem efter att ha clearat canvas
+      // // function drawAllUsers() {
+      // //   ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // //   for (const userId in users) {
+      // //     const user = users[userId];
+      // //     drawCircle(user.x, user.y, user.color, user.username);
+      // //   }
+      // //   for (var i = 0; i < foods.length; i++) {
+      // //     foodList.push(foods[i].show(foods.length));
+      // //     foods[i].show(foods.length);
+      // //     // const { foodX, foodY } = foodPos[i];
+      // //   }
+      // // }
+
+      // function drawAllUsers() {
+      //   ctx.clearRect(0, 0, canvas.width, canvas.height);
+      //   for (const userId in users) {
+      //       const user = users[userId];
+      //       drawCircle(user.x, user.y, user.color, user.username);
+      //   }
+      // }
+
+      // function drawAllFoods() {
+      //   for (const food of foods) {
+      //       drawFood(food.x, food.y, food.color);
+      //   }
+      // }
+
+      // function drawFood(x, y, color) {
+      //   console.log("ritar", x,y);
+      //   ctx.beginPath();
+      //   ctx.arc(x, y, 5, 0, 2 * Math.PI);
+      //   ctx.fillStyle = color;
+      //   ctx.fill();
+      //   ctx.stroke();
+      // }
+
+      // //------------
+
+      // // Key press listen-funktionen, keyUpdateInterval skapar en mjukare rörelse
+      // const keyUpdateInterval = 16;
+      // let keyUpdateTimer;
+
+      // function handleKeyPress(event) {
+      //   switch (event.key) {
+      //     case "ArrowUp":
+      //     case "w":
+      //       movement.up = true;
+      //       break;
+      //     case "ArrowDown":
+      //     case "s":
+      //       movement.down = true;
+      //       break;
+      //     case "ArrowLeft":
+      //     case "a":
+      //       movement.left = true;
+      //       break;
+      //     case "ArrowRight":
+      //     case "d":
+      //       movement.right = true;
+      //       break;
+      //   }
+
+      //   if (!keyUpdateTimer) {
+      //     keyUpdateTimer = setInterval(updatePosition, keyUpdateInterval);
+      //   }
+      // }
+
+      // function handleKeyRelease(event) {
+      //   switch (event.key) {
+      //     case "ArrowUp":
+      //     case "w":
+      //       movement.up = false;
+      //       break;
+      //     case "ArrowDown":
+      //     case "s":
+      //       movement.down = false;
+      //       break;
+      //     case "ArrowLeft":
+      //     case "a":
+      //       movement.left = false;
+      //       break;
+      //     case "ArrowRight":
+      //     case "d":
+      //       movement.right = false;
+      //       break;
+      //   }
+
+      //   // Clear the interval timer when no keys are pressed
+      //   if (!movement.up && !movement.down && !movement.left && !movement.right) {
+      //     clearInterval(keyUpdateTimer);
+      //     keyUpdateTimer = null;
+      //   }
+      // }
+
+
+      // function updatePosition() {
+      //   let dx = 0;
+      //   let dy = 0;
+
+      //   if (movement.up) dy -= 1;
+      //   if (movement.down) dy += 1;
+      //   if (movement.left) dx -= 1;
+      //   if (movement.right) dx += 1;
+
+      //   if (dx !== 0 || dy !== 0) {
+      //     circleX += dx * speed;
+      //     circleY += dy * speed;
+
+      //     drawCircle(circleX, circleY, circleColor);
+      //     socket.emit("updatePosition", { id: socket.id, x: circleX, y: circleY, color: circleColor, username: username});
+      //   }
+      // }
+
+      // // Sparar all användardata som inmatats i formuläret i början, och gömmer sedan formuläret
+      // function submitForm(event) {
+      //   event.preventDefault();
+
+      //   username = document.getElementById("usernameinput").value;
+      //   const favColor = document.getElementById("circolor").value;
+      //   circleColor = favColor;
+
+      //   socket.emit("newUser", { username, color: circleColor, x: circleX, y: circleY, canvasWidth: canvas.width, canvasHeight: canvas.height });
+
+      //   document.addEventListener("keydown", handleKeyPress);
+      //   document.addEventListener("keyup", handleKeyRelease);
+      //   document.getElementById("addUserForm").style.display = "none";
+      //   drawAllUsers();
+      //   // startGame();
+      //   drawAllFoods();
+      // }
+
+      // // Uppdaterar users cirklar med ny information
+      // socket.on("updateUsers", (updatedUsers) => {
+      //   for (const userId in updatedUsers) {
+      //     const updatedUser = updatedUsers[userId];
+      //     users[userId] = { ...users[userId], ...updatedUser };
+      //   }
+      //   drawAllUsers();
+      //   startGame();
+      //   drawAllFoods();
+      // });
+
+      // // Uppdaterar positionen av flyttade cirkeln för alla users
+      // socket.on("updatePosition", (data) => {
+      //   users[data.id] = data;
+      //   drawAllUsers();
+      //   drawAllFoods();
+      //   // startGame();
+      // });
+
+      // socket.on("newUserAndFoods", (data) => {
+      //   console.log("ritar mat",data.foods)
+
+      //   users = data.users;
+      //   foods = data.foods;
+      //   drawAllUsers();
+      //   drawAllFoods(); // New function to draw all food objects
+      // });
+
       const canvas = document.getElementById("myCanvas")
-      const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext("2d")
+    const devicePixelRatio = window.devicePixelRatio || 1;
+    canvas.width = canvas.width * devicePixelRatio;
+    canvas.height = canvas.height * devicePixelRatio;
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+    ctx.imageSmoothingEnabled = false;
 
-      const devicePixelRatio = window.devicePixelRatio || 1;
+    const socket = io()
+    let circleX = 50
+    let circleY = 50
+    const circleRadius = 20
+    let circleColor = "blue"
+    let username = "";
+    const speed = 2;
+    let users = [];
+    let foods = [];
 
-      canvas.width = canvas.width * devicePixelRatio;
-      canvas.height = canvas.height * devicePixelRatio;
+    const movement = {
+      up: false,
+      down: false,
+      left: false,
+      right: false
+    };
 
-      ctx.scale(devicePixelRatio, devicePixelRatio);
+    function getRandomInt(min, max) {
+      const minCeiled = Math.ceil(min);
+      const maxFloored = Math.floor(max);
+      return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
+    }
 
-      ctx.imageSmoothingEnabled = false;
+    function drawCircle(x, y, color, username) {
+      ctx.beginPath();
+      ctx.arc(x, y, circleRadius, 0, 2 * Math.PI);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.stroke();
+      ctx.font = '8px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'white'; // Set text color
+      ctx.fillText(username, x, y);
+    }
 
-      const socket = io()
+    function drawFood(x, y, color) {
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.stroke();
+    }
 
-      // Basdata för cirklarna
-      let circleX = 50
-      let circleY = 50
-      const circleRadius = 20
-      let circleColor = "blue"
-      let username = "";
-      const speed = 2;
+    function drawAllUsers() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const userId in users) {
+        const user = users[userId];
+        drawCircle(user.x, user.y, user.color, user.username);
+      }
+    }
 
-      // Array för users data
-      const users = {};
+    function drawAllFoods() {
+      for (const food of foods) {
+        drawFood(food.x, food.y, food.color);
+        console.log(food);
+      }
+    }
 
-      const foods = [];
+    const keyUpdateInterval = 16;
+    let keyUpdateTimer;
 
-      const movement = {
-        up: false,
-        down: false,
-        left: false,
-        right: false
-      };
-
-      function getRandomInt(min, max) {
-        const minCeiled = Math.ceil(min);
-        const maxFloored = Math.floor(max);
-        return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
+    function handleKeyPress(event) {
+      switch (event.key) {
+        case "ArrowUp":
+        case "w":
+          movement.up = true;
+          break;
+        case "ArrowDown":
+        case "s":
+          movement.down = true;
+          break;
+        case "ArrowLeft":
+        case "a":
+          movement.left = true;
+          break;
+        case "ArrowRight":
+        case "d":
+          movement.right = true;
+          break;
       }
 
-      const foodPos = [];
+      if (!keyUpdateTimer) {
+        keyUpdateTimer = setInterval(updatePosition, keyUpdateInterval);
+      }
+    }
 
-      function Food(rad) {
-        this.x = getRandomInt(20, canvas.width - 20);
-        this.y = getRandomInt(20, canvas.height - 20);
-        foodPos.push({ foodX: this.x, foodY: this.y })
-        this.rad = rad;
-        this.color = "green";
-        this.username = "";
-        console.log(foodPos, foods, foodList);
-        this.show = function() {
-          for (var g = 0; g < foodPos.length; g++) {
-            const { foodX, foodY } = foodPos[g];
-            ctx.beginPath();
-            ctx.arc(foodX, foodY, this.rad, 0, 2 * Math.PI);
-            ctx.fillStyle = this.color;
-            ctx.fill();
-            ctx.stroke();
-            console.log(foodPos, foods, foodList);
-          }
-          startRound = false;
-          // if (startRound == false) {
-          //   stuckX = this.x;
-          //   stuckY = this.y;
-          //   ctx.arc(stuckX, stuckY, this.rad, 0, 2 * Math.PI);
-          // } else {
-          //   ctx.arc(this.x, this.y, this.rad, 0, 2 * Math.PI);
-          //   ctx.fillStyle = this.color;
-          //   ctx.fill();
-          //   ctx.stroke();
-          //   startRound = false;
-          // }
-        }
+    function handleKeyRelease(event) {
+      switch (event.key) {
+        case "ArrowUp":
+        case "w":
+          movement.up = false;
+          break;
+        case "ArrowDown":
+        case "s":
+          movement.down = false;
+          break;
+        case "ArrowLeft":
+        case "a":
+          movement.left = false;
+          break;
+        case "ArrowRight":
+        case "d":
+          movement.right = false;
+          break;
       }
 
-      var startRound = false;
-      function startGame() {
-        for (var j = 0; j < 10; j++) {
-          foods[j] = new Food(5);
-
-          // foods[j].x = getRandomInt(20, canvas.width - 20);
-          // foods[j].y = getRandomInt(20, canvas.height - 20);
-          // foods[j].color = "green";
-          // foods[j].username = "";
-        }
-        startRound = true;
+      if (!movement.up && !movement.down && !movement.left && !movement.right) {
+        clearInterval(keyUpdateTimer);
+        keyUpdateTimer = null;
       }
+    }
 
-      // Funktionen som ritar cirklarna
-      function drawCircle(x, y, color, username) {
-        ctx.beginPath();
-        ctx.arc(x, y, circleRadius, 0, 2 * Math.PI);
-        ctx.fillStyle = color;
-        ctx.fill();
-        ctx.stroke();
+    function updatePosition() {
+      let dx = 0;
+      let dy = 0;
 
-        ctx.font = '8px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = 'white'; // Set text color
-        ctx.fillText(username, x, y);
+      if (movement.up) dy -= 1;
+      if (movement.down) dy += 1;
+      if (movement.left) dx -= 1;
+      if (movement.right) dx += 1;
+
+      if (dx !== 0 || dy !== 0) {
+        circleX += dx * speed;
+        circleY += dy * speed;
+        drawCircle(circleX, circleY, circleColor);
+        socket.emit("updatePosition", { id: socket.id, x: circleX, y: circleY, color: circleColor, username: username });
       }
+    }
 
-      //-----------
+    function submitForm(event) {
+      event.preventDefault();
+      username = document.getElementById("usernameinput").value;
+      const favColor = document.getElementById("circolor").value;
+      circleColor = favColor;
+      socket.emit("newUser", { username, color: circleColor, x: circleX, y: circleY, canvasWidth: canvas.width, canvasHeight: canvas.height });
+      document.addEventListener("keydown", handleKeyPress);
+      document.addEventListener("keyup", handleKeyRelease);
+      document.getElementById("addUserForm").style.display = "none";
+    }
 
-      const foodList = [];
+    socket.on("updateUsers", (updatedUsers) => {
+      users = updatedUsers;
+      drawAllUsers();
+      drawAllFoods();
+    });
 
-      // Funktionen som kallar alla users cirklar och ritar dem efter att ha clearat canvas
-      function drawAllUsers() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (const userId in users) {
-          const user = users[userId];
-          drawCircle(user.x, user.y, user.color, user.username);
-        }
-        for (var i = 0; i < foods.length; i++) {
-          foodList.push(foods[i].show(foods.length));
-          // const { foodX, foodY } = foodPos[i];
-        }
-      }
+    socket.on("updatePosition", (data) => {
+      users[data.id] = data;
+      drawAllUsers();
+      drawAllFoods();
+    });
 
-      //------------
+    socket.on("newUserAndFoods", (data) => {
+      users = data.users;
+      foods = data.foods;
+      drawAllUsers();
+      drawAllFoods();
+      // socket.emit("updatePosition");
+    });
 
-      // Key press listen-funktionen, keyUpdateInterval skapar en mjukare rörelse
-      const keyUpdateInterval = 16;
-      let keyUpdateTimer;
-
-      function handleKeyPress(event) {
-        switch (event.key) {
-          case "ArrowUp":
-          case "w":
-            movement.up = true;
-            break;
-          case "ArrowDown":
-          case "s":
-            movement.down = true;
-            break;
-          case "ArrowLeft":
-          case "a":
-            movement.left = true;
-            break;
-          case "ArrowRight":
-          case "d":
-            movement.right = true;
-            break;
-        }
-
-        if (!keyUpdateTimer) {
-          keyUpdateTimer = setInterval(updatePosition, keyUpdateInterval);
-        }
-      }
-
-      function handleKeyRelease(event) {
-        switch (event.key) {
-          case "ArrowUp":
-          case "w":
-            movement.up = false;
-            break;
-          case "ArrowDown":
-          case "s":
-            movement.down = false;
-            break;
-          case "ArrowLeft":
-          case "a":
-            movement.left = false;
-            break;
-          case "ArrowRight":
-          case "d":
-            movement.right = false;
-            break;
-        }
-
-        // Clear the interval timer when no keys are pressed
-        if (!movement.up && !movement.down && !movement.left && !movement.right) {
-          clearInterval(keyUpdateTimer);
-          keyUpdateTimer = null;
-        }
-      }
-
-
-      function updatePosition() {
-        let dx = 0;
-        let dy = 0;
-
-        if (movement.up) dy -= 1;
-        if (movement.down) dy += 1;
-        if (movement.left) dx -= 1;
-        if (movement.right) dx += 1;
-
-        if (dx !== 0 || dy !== 0) {
-          circleX += dx * speed;
-          circleY += dy * speed;
-
-          drawCircle(circleX, circleY, circleColor);
-          socket.emit("updatePosition", { id: socket.id, x: circleX, y: circleY, color: circleColor, username: username});
-        }
-      }
-
-      // Sparar all användardata som inmatats i formuläret i början, och gömmer sedan formuläret
-      function submitForm(event) {
-        event.preventDefault();
-
-        username = document.getElementById("usernameinput").value;
-        const favColor = document.getElementById("circolor").value;
-        circleColor = favColor;
-
-        socket.emit("newUser", { username, color: circleColor, x: circleX, y: circleY });
-
-        document.addEventListener("keydown", handleKeyPress);
-        document.addEventListener("keyup", handleKeyRelease);
-        document.getElementById("addUserForm").style.display = "none";
-        drawAllUsers();
-        startGame();
-      }
-
-      // Uppdaterar users cirklar med ny information
-      socket.on("updateUsers", (updatedUsers) => {
-        for (const userId in updatedUsers) {
-          const updatedUser = updatedUsers[userId];
-          users[userId] = { ...users[userId], ...updatedUser };
-        }
-        drawAllUsers();
-        startGame();
-      });
-
-      // Uppdaterar positionen av flyttade cirkeln för alla users
-      socket.on("updatePosition", (data) => {
-        users[data.id] = data;
-        drawAllUsers();
-        startGame();
-      });
     </script>
   </body>
 </html>
