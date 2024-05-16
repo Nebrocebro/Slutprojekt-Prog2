@@ -101,80 +101,6 @@
 // //   });
 // // });
 
-// // Define the getRandomInt function
-// function getRandomInt(min, max) {
-//   const minCeiled = Math.ceil(min);
-//   const maxFloored = Math.floor(max);
-//   return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
-// }
-
-// let foods = [];
-
-// io.on("connection", (socket) => {
-//   console.log("a user connected");
-
-//   // // Listen for newUser event
-//   // socket.on("newUser", (userData) => {
-//   //   // Emit the current users to the new user
-//   //   socket.emit("updateUsers", users);
-
-//   //   // Add the new user to the users object
-//   //   users[socket.id] = { id: socket.id, ...userData };
-//   //   // Emit the new user to all connected clients
-//   //   io.emit("updateUsers", users);
-//   // });
-
-//   // Inside the 'newUser' event listener
-
-//   socket.on("newUser", (userData) => {
-//     // Extract canvas dimensions from userData
-//     const { canvasWidth, canvasHeight } = userData;
-
-//     // Generate initial food positions using canvas dimensions
-//     for (var j = 0; j < 10; j++) {
-//       foods[j] = {
-//         x: getRandomInt(20, canvasWidth - 20),
-//         y: getRandomInt(20, canvasHeight - 20),
-//         rad: 5,
-//         color: "green",
-//         username: "",
-//       };
-//     }
-
-//     // Add the new user to the users object
-//     users[socket.id] = { id: socket.id, ...userData };
-
-//     // Emit the current users and initial food positions to the new user
-//     socket.emit("newUserAndFoods", { users, foods });
-
-//     // Emit the new user to all connected clients
-//     io.emit("updateUsers", users);
-//   });
-
-//   socket.on("updatePosition", (data) => {
-//     // Update the position of the user
-//     users[socket.id] = {
-//       id: socket.id,
-//       ...users[socket.id],
-//       ...data,
-//       username: users[socket.id].username,
-//     };
-//     // Broadcast the updated user position to all clients
-//     io.emit("updatePosition", { id: socket.id, ...data });
-//   });
-
-//   socket.on("disconnect", () => {
-//     // Remove the disconnected user
-//     delete users[socket.id];
-//     // Broadcast the updated user list to all clients
-//     io.emit("updateUsers", users);
-//   });
-// });
-
-// server.listen(3000, () => {
-//   console.log("listening on *:3000");
-// });
-
 const express = require("express");
 const app = express();
 const http = require("http");
@@ -244,27 +170,28 @@ io.on("connection", (socket) => {
 
     // }
     // else if (foods.length === 0) {
-    if (foods.length === 0) {
-      for (let j = 0; j < 10; j++) {
-        foods.push({
-          x: getRandomInt(20, canvasWidth - 20),
-          y: getRandomInt(20, canvasHeight - 20),
-          rad: 5,
-          color: "green",
-          username: "",
-        });
-      }
+    // if (foods.length === 0) {
+    for (let j = 0; j < 10; j++) {
+      foods.push({
+        x: getRandomInt(20, canvasWidth - 20),
+        y: getRandomInt(20, canvasHeight - 20),
+        rad: 5,
+        color: "green",
+        username: "",
+      });
     }
+    // }
     // }
 
     // Add the new user to the users object
-    users[socket.id] = { id: socket.id, ...userData };
+    users[socket.id] = { id: socket.id, ...userData, circleRadius: 20 };
 
     // Emit the current users and initial food positions to the new user
     socket.emit("newUserAndFoods", { users, foods });
 
     // Emit the new user to all connected clients
-    io.emit("updateUsers", users);
+    io.emit("updateUsers", { users, foods });
+    // console.log(foods);
   });
 
   socket.on("updatePosition", (data) => {
@@ -279,10 +206,20 @@ io.on("connection", (socket) => {
     io.emit("updatePosition", { id: socket.id, ...data });
   });
 
+  socket.on("foodEaten", ({ foodIndex, playerId, oldRadius }) => {
+    if (foods[foodIndex]) {
+      foods.splice(foodIndex, 1);
+      console.log(playerId);
+      users[playerId].oldRadius += 1;
+      // console.log(users.findIndex(id, playerId));
+      io.emit("updateFoods", { foods, playerId });
+    }
+  });
+
   socket.on("disconnect", () => {
     // Remove the disconnected user
     delete users[socket.id];
-    console.log(users);
+    // console.log(users);
     // if (users.length > 0) {
     //   for (i = 0; i < 10; i++) {
     //     foods.pop(i);
@@ -294,11 +231,11 @@ io.on("connection", (socket) => {
     //   }
     // }
     // if ((users.length = 0)) {
-    foods = [];
+    foods.length = 0;
     // }
 
     // Broadcast the updated user list to all clients
-    io.emit("updateUsers", users);
+    io.emit("updateUsers", { users, foods });
   });
 });
 

@@ -1,8 +1,10 @@
 * Gör en separat sida för log in/add user/edit info
 * Få socket att ta info från sql databas istället för formulär
-* Fixa onsubmit(submitForm) sakerna och lägg tillbaka den i formuläret (om det ska finnas kvar)
+* Fixa onsubmit(submitForm(event)) sakerna och lägg tillbaka den i formuläret (om det ska finnas kvar)
 * Fixa injection-skyddet så den stödjer de karaktärer som kan förekomma i insert
 * Bild istället för färg som fill på cirklarna
 * Mat/liknande för att faktiskt ha ett spel och inte ett glorified demo 💀
 
 * Skapa C# 2 och bli hyllad som programmeringens stamfader
+
+* Emitta meddelande om att ny mat ska skapas (kanske efter delay?) och pusha till listan sedan rita mat
