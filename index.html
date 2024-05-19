@@ -35,6 +35,15 @@
     <br>
     <div id="maincontainer">
       <h1>Circle Mover!</h1>
+      <br>
+      <img src="" alt="" id="profilePicDisplay" style="width: 50px; height: auto;">
+      <div>
+        <h2>High Score: </h2>
+        <p id="highScoreDisplay">0</p>
+        <br>¨¨¨¨¨¨¨¨¨¨
+        <h2>Score: </h2>
+        <p id="scoreDisplay">0</p>
+      </div>
       <canvas id="myCanvas" width="600" height="600"></canvas>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
@@ -59,11 +68,6 @@
       left: false,
       right: false
     };
-    
-    // let circleX = 50
-    // let circleY = 50
-    // var circleRadius = 20
-    // let circleColor = "blue"
 
     function getRandomInt(min, max) {
       const minCeiled = Math.ceil(min);
@@ -117,39 +121,16 @@
       }
     }
 
-    // function drawCircle(x, y, color, username) {
-    //   ctx.beginPath();
-    //   ctx.arc(x, y, circleRadius, 0, 2 * Math.PI);
-    //   ctx.fillStyle = color;
-    //   ctx.fill();
-    //   ctx.stroke();
-    //   ctx.font = '8px Arial';
-    //   ctx.textAlign = 'center';
-    //   ctx.textBaseline = 'middle';
-    //   ctx.fillStyle = 'white'; // Set text color
-    //   ctx.fillText(username, x, y);
-    // }
-
-    // function drawFood(x, y, color) {
-    //   ctx.beginPath();
-    //   ctx.arc(x, y, 5, 0, 2 * Math.PI);
-    //   ctx.fillStyle = color;
-    //   ctx.fill();
-    //   ctx.stroke();
-    // }
-
     function drawAllUsers() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (const userId in users) {
         const user = users[userId];
-        // drawCircle(user.x, user.y, user.color, user.username);
         user.draw(ctx);
       }
     }
 
     function drawAllFoods() {
       for (const food of foods) {
-        // drawFood(food.x, food.y, food.color);
         food.draw(ctx);
       }
     }
@@ -218,8 +199,6 @@
     function handleCollisions() {
       for (let i = foods.length - 1; i >= 0; i--) {
         if (isCollision(circle.x, circle.y, circle.radius, foods[i].x, foods[i].y, foods[i].radius)) {
-          // circle.radius += (food.radius/5);
-          console.log("waitwat", circle.radius)
           foods.splice(i, 1);
           socket.emit("foodEaten", { foodIndex: i, playerId: socket.id });
         }
@@ -238,55 +217,80 @@
       if (dx !== 0 || dy !== 0) {
         circle.move(dx, dy, speed);
         circle.draw(ctx);
-        // circleX += dx * speed;
-        // circleY += dy * speed;
-        // drawCircle(circleX, circleY, circleColor);
-        // socket.emit("updatePosition", { id: socket.id, x: circleX, y: circleY, color: circleColor, username: username });
-        socket.emit("updatePosition", { id: socket.id, x: circle.x, y: circle.y, color: circle.color, username: username })
+        socket.emit("updatePosition", { id: socket.id, x: circle.x, y: circle.y, color: circle.color, username: circle.username })
         handleCollisions();
       }
     }
 
-    function submitForm(event) {
-      event.preventDefault();
-      username = document.getElementById("usernameinput").value;
-      const favColor = document.getElementById("circolor").value;
-      const circleX = 50;
-      const circleY = 50;
-      const circleRadius = 20;
-      circle = new Circle(socket.id, username, circleX, circleY, circleRadius, favColor);
-      socket.emit("newUser", { username, color: favColor, x: circleX, y: circleY, canvasWidth: canvas.width, canvasHeight: canvas.height });
-      document.addEventListener("keydown", handleKeyPress);
-      document.addEventListener("keyup", handleKeyRelease);
-      document.getElementById("addUserForm").style.display = "none";
-    }
+  let disconnUsername = null;
 
-    socket.on("updateFoods", ({ foods: updatedFoods, playerId, eatenFoodVal }) => {
-      console.log(playerId);
+  function submitForm(event) {
+    event.preventDefault();
+    const form = document.getElementById("addUserForm");
+    const formData = new FormData(form);
+    let username = "";
+    let favColor = "";
+    const circleX = 50;
+    const circleY = 50;
+    const circleRadius = 20;
+
+    fetch('/addUser', {
+      method: 'POST',
+      body: formData,
+    })
+    .then(response => response.text())
+    .then(() => {
+      return fetch('/updateUserInfo');
+    })
+        .then(response => response.json())
+        .then(data => {
+          disconnUsername = data.usernameVal;
+          console.log("babonga logg data: ", data);
+          console.log("knasig loggning: ", data.usernameVal, data.colorVal, data.hiscoreVal, data.profilePicVal);
+          username = data.usernameVal;
+          favColor = data.colorVal;
+          if (data.hiscoreVal == null || 0 || "0") {
+            document.getElementById("highScoreDisplay").innerHTML = "0";
+          } else {
+            document.getElementById("highScoreDisplay").innerHTML = data.hiscoreVal;
+          }
+          console.log("bingabongabinga loggning: ", username, "favColor");
+          circle = new Circle(socket.id, username, circleX, circleY, circleRadius, favColor);
+          users[socket.id] = circle;
+          socket.emit("newUser", { username, color: favColor, x: circleX, y: circleY, canvasWidth: canvas.width, canvasHeight: canvas.height });
+          document.addEventListener("keydown", handleKeyPress);
+          document.addEventListener("keyup", handleKeyRelease);
+          document.getElementById("addUserForm").style.display = "none";
+        })
+        .catch(error => console.error('Error updating user info:', error));
+  }
+
+  function saveHighScore() {
+      const currentScore = parseInt(document.getElementById("scoreDisplay").innerHTML);
+      if (disconnUsername) {
+        socket.emit('saveHighScore', { disconnUsername, score: currentScore });
+      }
+    }
+  
+    socket.on("updateFoods", ({ foods: updatedFoods, playerId, newRadius }) => {
       foods = updatedFoods.map(food => new Food(food.x, food.y, food.radius, food.color));
       drawAllFoods();
-      for (const userId in users) {
-        const user = users[userId];
-        console.log(user.radius, " rad1");
-        if (user.id == playerId) {
-        // user.radius += (food.radius/5);
-          user.radius = user.radius + eatenFoodVal/5;
-        console.log(user.radius, " rad2");
-        // console.log(users[playerId].circleRadius); 
-        // console.log(users[user.id].circleRadius);
+      if (users[playerId]) {
+        users[playerId].radius = newRadius;
+        if (playerId === socket.id) {
+          circle.radius = newRadius;
+          document.getElementById("scoreDisplay").innerHTML = `${((circle.radius-20) * 10)}`;
         }
       }
     });
 
     socket.on("updateUsers", (data) => {
-      // users = data.users;
       users = {};
       for (const userId in data.users) {
         const userData = data.users[userId];
         users[userId] = new Circle(userData.id, userData.username, userData.x, userData.y, userData.circleRadius, userData.color)
       }
       foods = data.foods.map(food => new Food(food.x, food.y, food.radius, food.color));
-      // foods.length = 0;
       drawAllUsers();
       drawAllFoods();
     });
@@ -295,6 +299,7 @@
       if (users[data.id]) {
         users[data.id].x = data.x;
         users[data.id].y = data.y;
+        users[data.id].username = data.username;
       drawAllUsers();
       drawAllFoods();
       }
@@ -308,11 +313,10 @@
       }
       foods = data.foods.map(food => new Food(food.x, food.y, food.radius, food.color));
       drawAllUsers();
-      // socket.emit("updateUsers");
       drawAllFoods();
-      // socket.emit("updatePosition");
     });
-
+    
+    socket.on("disconnect", saveHighScore);
     </script>
   </body>
 </html>
