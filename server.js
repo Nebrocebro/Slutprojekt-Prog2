@@ -112,6 +112,7 @@ const bodyParser = require("body-parser");
 var path = require("path");
 var multer = require("multer");
 var crypto = require("crypto");
+const { emit } = require("process");
 
 var storage = multer.diskStorage({
   destination: "./public/profPics/",
@@ -151,12 +152,43 @@ app.get("/", (req, res) => {
 
 const users = {};
 let foods = [];
+let foodGenerationInterval;
+let foodGenerationStarted = false;
 
 // Define the getRandomInt function
 function getRandomInt(min, max) {
   const minCeiled = Math.ceil(min);
   const maxFloored = Math.floor(max);
   return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
+}
+
+function generateFood(canvasWidth, canvasHeight, amount) {
+  for (let i = 0; i < amount; i++) {
+    foods.push({
+      x: getRandomInt(20, canvasWidth - 20),
+      y: getRandomInt(20, canvasHeight - 20),
+      radius: getRandomInt(5, 10),
+      color: "green",
+    });
+  }
+  io.emit("updateFoods", { foods });
+}
+
+function startFoodGeneration(canvasWidth, canvasHeight) {
+  // const canvasWidth = 600;
+  // const canvasHeight = 600;
+  if (!foodGenerationStarted) {
+    foodGenerationInterval = setInterval(() => {
+      generateFood(canvasWidth, canvasHeight, 1);
+    }, 5000);
+    foodGenerationStarted = true;
+  }
+}
+
+// Function to stop food generation
+function stopFoodGeneration() {
+  clearInterval(foodGenerationInterval);
+  foodGenerationStarted = false;
 }
 
 io.on("connection", (socket) => {
@@ -171,15 +203,10 @@ io.on("connection", (socket) => {
     // }
     // else if (foods.length === 0) {
     // if (foods.length === 0) {
-    for (let j = 0; j < 10; j++) {
-      foods.push({
-        x: getRandomInt(20, canvasWidth - 20),
-        y: getRandomInt(20, canvasHeight - 20),
-        rad: 5,
-        color: "green",
-        username: "",
-      });
-    }
+    // for (let j = 0; j < 10; j++) {
+    generateFood(canvasWidth, canvasHeight, 10);
+    startFoodGeneration(canvasWidth, canvasHeight);
+    // }
     // }
     // }
 
@@ -195,30 +222,38 @@ io.on("connection", (socket) => {
   });
 
   socket.on("updatePosition", (data) => {
-    users[socket.id] = {
-      id: socket.id,
-      ...users[socket.id],
-      ...data,
-      username: users[socket.id].username,
-    };
-
-    // Broadcast the updated user position to all clients
-    io.emit("updatePosition", { id: socket.id, ...data });
+    if (users[socket.id]) {
+      users[socket.id] = {
+        id: socket.id,
+        ...users[socket.id],
+        ...data,
+      };
+      io.emit("updatePosition", { id: socket.id, ...data });
+    }
   });
 
-  socket.on("foodEaten", ({ foodIndex, playerId, oldRadius }) => {
+  socket.on("foodEaten", ({ foodIndex, playerId }) => {
     if (foods[foodIndex]) {
+      const eatenFood = foods[foodIndex];
       foods.splice(foodIndex, 1);
       console.log(playerId);
-      users[playerId].oldRadius += 1;
+      users[playerId].radius += eatenFood.radius / 5;
       // console.log(users.findIndex(id, playerId));
-      io.emit("updateFoods", { foods, playerId });
+      io.emit("updateFoods", {
+        foods,
+        playerId,
+        eatenFoodVal: eatenFood.radius,
+      });
     }
   });
 
   socket.on("disconnect", () => {
     // Remove the disconnected user
     delete users[socket.id];
+    if (Object.keys(users).length === 0) {
+      foods.length = 0;
+      stopFoodGeneration();
+    }
     // console.log(users);
     // if (users.length > 0) {
     //   for (i = 0; i < 10; i++) {
@@ -230,8 +265,9 @@ io.on("connection", (socket) => {
     //     l -= 1;
     //   }
     // }
+
     // if ((users.length = 0)) {
-    foods.length = 0;
+    // foods.length = 0;
     // }
 
     // Broadcast the updated user list to all clients

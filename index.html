@@ -47,23 +47,23 @@
     ctx.scale(devicePixelRatio, devicePixelRatio);
     ctx.imageSmoothingEnabled = false;
 
-    const socket = io()
-    let circleX = 50
-    let circleY = 50
-    var circleRadius = 20
-    let circleColor = "blue"
-    let username = "";
+    const socket = io();
     const speed = 2;
-    let users = [];
+    let circle = null;
+    let username = "";
+    let users = {};
     let foods = [];
-    let circleId = "";
-
     const movement = {
       up: false,
       down: false,
       left: false,
       right: false
     };
+    
+    // let circleX = 50
+    // let circleY = 50
+    // var circleRadius = 20
+    // let circleColor = "blue"
 
     function getRandomInt(min, max) {
       const minCeiled = Math.ceil(min);
@@ -71,38 +71,86 @@
       return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
     }
 
-    function drawCircle(x, y, color, username) {
-      ctx.beginPath();
-      ctx.arc(x, y, circleRadius, 0, 2 * Math.PI);
-      ctx.fillStyle = color;
-      ctx.fill();
-      ctx.stroke();
-      ctx.font = '8px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'white'; // Set text color
-      ctx.fillText(username, x, y);
+    class Circle {
+      constructor(id, username, x, y, radius, color) {
+        this.id = id;
+        this.username = username;
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.color = color;
+      }
+
+      draw(ctx) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.stroke();
+        ctx.font = '8px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'white';
+        ctx.fillText(this.username, this.x, this.y);
+      }
+
+      move(dx, dy, speed) {
+        this.x += dx * speed;
+        this.y += dy * speed;
+      }
     }
 
-    function drawFood(x, y, color) {
-      ctx.beginPath();
-      ctx.arc(x, y, 5, 0, 2 * Math.PI);
-      ctx.fillStyle = color;
-      ctx.fill();
-      ctx.stroke();
+    class Food {
+      constructor(x, y, radius, color) {
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.color = color;
+      }
+
+      draw(ctx) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.stroke();
+      }
     }
+
+    // function drawCircle(x, y, color, username) {
+    //   ctx.beginPath();
+    //   ctx.arc(x, y, circleRadius, 0, 2 * Math.PI);
+    //   ctx.fillStyle = color;
+    //   ctx.fill();
+    //   ctx.stroke();
+    //   ctx.font = '8px Arial';
+    //   ctx.textAlign = 'center';
+    //   ctx.textBaseline = 'middle';
+    //   ctx.fillStyle = 'white'; // Set text color
+    //   ctx.fillText(username, x, y);
+    // }
+
+    // function drawFood(x, y, color) {
+    //   ctx.beginPath();
+    //   ctx.arc(x, y, 5, 0, 2 * Math.PI);
+    //   ctx.fillStyle = color;
+    //   ctx.fill();
+    //   ctx.stroke();
+    // }
 
     function drawAllUsers() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (const userId in users) {
         const user = users[userId];
-        drawCircle(user.x, user.y, user.color, user.username);
+        // drawCircle(user.x, user.y, user.color, user.username);
+        user.draw(ctx);
       }
     }
 
     function drawAllFoods() {
       for (const food of foods) {
-        drawFood(food.x, food.y, food.color);
+        // drawFood(food.x, food.y, food.color);
+        food.draw(ctx);
       }
     }
 
@@ -169,13 +217,11 @@
 
     function handleCollisions() {
       for (let i = foods.length - 1; i >= 0; i--) {
-        if (isCollision(circleX, circleY, circleRadius, foods[i].x, foods[i].y, foods[i].rad)) {
-          // this.circleRadius += 1;
-          // Remove the food from the array
+        if (isCollision(circle.x, circle.y, circle.radius, foods[i].x, foods[i].y, foods[i].radius)) {
+          // circle.radius += (food.radius/5);
+          console.log("waitwat", circle.radius)
           foods.splice(i, 1);
-          // Notify the server about the collision
-          // playerId: socket.id,
-          socket.emit("foodEaten", { foodIndex: i, playerId: socket.id, oldRadius: socket.id.circleRadius });
+          socket.emit("foodEaten", { foodIndex: i, playerId: socket.id });
         }
       }
     }
@@ -190,10 +236,13 @@
       if (movement.right) dx += 1;
 
       if (dx !== 0 || dy !== 0) {
-        circleX += dx * speed;
-        circleY += dy * speed;
-        drawCircle(circleX, circleY, circleColor);
-        socket.emit("updatePosition", { id: socket.id, x: circleX, y: circleY, color: circleColor, username: username });
+        circle.move(dx, dy, speed);
+        circle.draw(ctx);
+        // circleX += dx * speed;
+        // circleY += dy * speed;
+        // drawCircle(circleX, circleY, circleColor);
+        // socket.emit("updatePosition", { id: socket.id, x: circleX, y: circleY, color: circleColor, username: username });
+        socket.emit("updatePosition", { id: socket.id, x: circle.x, y: circle.y, color: circle.color, username: username })
         handleCollisions();
       }
     }
@@ -202,44 +251,62 @@
       event.preventDefault();
       username = document.getElementById("usernameinput").value;
       const favColor = document.getElementById("circolor").value;
-      circleColor = favColor;
-      socket.emit("newUser", { username, color: circleColor, x: circleX, y: circleY, canvasWidth: canvas.width, canvasHeight: canvas.height });
+      const circleX = 50;
+      const circleY = 50;
+      const circleRadius = 20;
+      circle = new Circle(socket.id, username, circleX, circleY, circleRadius, favColor);
+      socket.emit("newUser", { username, color: favColor, x: circleX, y: circleY, canvasWidth: canvas.width, canvasHeight: canvas.height });
       document.addEventListener("keydown", handleKeyPress);
       document.addEventListener("keyup", handleKeyRelease);
       document.getElementById("addUserForm").style.display = "none";
     }
 
-    socket.on("updateFoods", ({ foods: updatedFoods, playerId }) => {
+    socket.on("updateFoods", ({ foods: updatedFoods, playerId, eatenFoodVal }) => {
       console.log(playerId);
-      foods = updatedFoods;
+      foods = updatedFoods.map(food => new Food(food.x, food.y, food.radius, food.color));
       drawAllFoods();
       for (const userId in users) {
         const user = users[userId];
+        console.log(user.radius, " rad1");
         if (user.id == playerId) {
-        users[user.id].circleRadius += 1;
-        console.log(users[playerId].circleRadius);
-        console.log(users[user.id].circleRadius);
+        // user.radius += (food.radius/5);
+          user.radius = user.radius + eatenFoodVal/5;
+        console.log(user.radius, " rad2");
+        // console.log(users[playerId].circleRadius); 
+        // console.log(users[user.id].circleRadius);
         }
       }
     });
 
     socket.on("updateUsers", (data) => {
-      users = data.users;
-      foods = data.foods;
+      // users = data.users;
+      users = {};
+      for (const userId in data.users) {
+        const userData = data.users[userId];
+        users[userId] = new Circle(userData.id, userData.username, userData.x, userData.y, userData.circleRadius, userData.color)
+      }
+      foods = data.foods.map(food => new Food(food.x, food.y, food.radius, food.color));
       // foods.length = 0;
       drawAllUsers();
       drawAllFoods();
     });
 
     socket.on("updatePosition", (data) => {
-      users[data.id] = data;
+      if (users[data.id]) {
+        users[data.id].x = data.x;
+        users[data.id].y = data.y;
       drawAllUsers();
       drawAllFoods();
+      }
     });
 
     socket.on("newUserAndFoods", (data) => {
-      users = data.users;
-      foods = data.foods;
+      users = {};
+      for (const userId in data.users) {
+        const userData = data.users[userId];
+        users[userId] = new Circle(userData.id, userData.username, userData.x, userData.y, userData.circleRadius, userData.color);
+      }
+      foods = data.foods.map(food => new Food(food.x, food.y, food.radius, food.color));
       drawAllUsers();
       // socket.emit("updateUsers");
       drawAllFoods();
