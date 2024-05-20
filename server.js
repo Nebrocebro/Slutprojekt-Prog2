@@ -64,7 +64,6 @@ app.post("/addUser", upload.single("profilePic"), (req, res) => {
   }
   const insertQuery = `INSERT INTO users (username, passwd, favcolor, profilepic) VALUES (?, ?, ?, ?)`;
   const values = [username, passwd, circolor, profilePic];
-  console.log(values);
 
   conn.query(insertQuery, values, (err, result) => {
     if (err) {
@@ -83,6 +82,34 @@ let usernameVal = "";
 let profilePicVal = "";
 let colorVal = "";
 let hiScoreVal = "0";
+app.post("/logInUser", (req, res) => {
+  const username = req.body.username;
+  const passwd = req.body.passwd;
+  logInQuery = `SELECT username, hiscore, profilepic, favcolor FROM users WHERE username = ? AND passwd = ?`;
+  logInValues = [username, passwd];
+
+  conn.query(logInQuery, logInValues, (err, results) => {
+    if (err) {
+      console.error("Error retrieving data from the database: " + err.stack);
+      res.sendStatus(500);
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(404).send({ error: "User not found or incorrect password" });
+      return;
+    }
+
+    data = {
+      usernameVal: results[0].username,
+      hiscoreVal: results[0].hiscore,
+      profilePicVal: results[0].profilepic,
+      colorVal: results[0].favcolor,
+    };
+    res.json(data);
+  });
+});
+
 app.get("/updateUserInfo", (req, res) => {
   const searchId = thisUserId;
   const UNQuery = `SELECT username, hiscore, profilepic, favcolor FROM users WHERE id = ?`;
@@ -92,22 +119,21 @@ app.get("/updateUserInfo", (req, res) => {
       res.sendStatus(500);
       return;
     }
-    // if (results.profilepic == "" || null) {
-    // data = {
-    //   usernameVal: results[0].username,
-    //   hiscoreVal: results[0].hiscore,
-    //   profilePicVal: "",
-    //   colorVal: results[0].favcolor,
-    // };
-    // } else {
-    data = {
-      usernameVal: results[0].username,
-      hiscoreVal: results[0].hiscore,
-      profilePicVal: results[0].profilepic,
-      colorVal: results[0].favcolor,
-    };
-    // }
-    console.log("hejhej va ", data);
+    if (results.profilepic == "" || null) {
+      data = {
+        usernameVal: results[0].username,
+        hiscoreVal: results[0].hiscore,
+        profilePicVal: "",
+        colorVal: results[0].favcolor,
+      };
+    } else {
+      data = {
+        usernameVal: results[0].username,
+        hiscoreVal: results[0].hiscore,
+        profilePicVal: results[0].profilepic,
+        colorVal: results[0].favcolor,
+      };
+    }
     res.json(data);
   });
 });

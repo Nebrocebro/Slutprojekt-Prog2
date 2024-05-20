@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="public/style.css">
+    <link rel="stylesheet" href="public/style.css" />
     <style>
       canvas {
         border: 1px solid #000;
@@ -14,309 +14,508 @@
   <body>
     <nav>
       <!-- Lägg till action="/addUser" och method="post" när "spelet" är klart -->
-      <form id="addUserForm" onsubmit="submitForm(event)" enctype="multipart/form-data" style="margin-top: 5px; margin-bottom: 5px;">
+      <form
+        id="addUserForm"
+        onsubmit="submitForm(event)"
+        enctype="multipart/form-data"
+        style="margin-top: 5px; margin-bottom: 5px"
+      >
+        <h1>Create An Account Here!</h1>
         <label for="username">* Username:</label>
-        <input type="text" id="usernameinput" name="username" autocomplete="off" placeholder="Nickname" style="color: black;" required/><br>
+        <input
+          type="text"
+          id="usernameinput"
+          name="username"
+          autocomplete="off"
+          placeholder="Nickname"
+          style="color: black"
+          required
+        /><br />
 
         <label for="passwd">* Password:</label>
-        <input type="password" id="passwd" name="passwd" style="color: #000;" required><br>
-            
+        <input
+          type="password"
+          id="passwd"
+          name="passwd"
+          style="color: #000"
+          required
+        /><br />
+
         <label for="profilePic">Profile Picture (Not required):</label>
-        <input type="file" id="profilePic" name="profilePic"><br>
+        <input type="file" id="profilePic" name="profilePic" /><br />
 
-        <label for="circolor">Give your blob your favourite color! (Not required)</label>
-        <input type="color" name="circolor" id="circolor" style="border-radius: 100%;"><br>
+        <label for="circolor"
+          >Give your blob your favourite color! (Not required)</label
+        >
+        <input
+          type="color"
+          name="circolor"
+          id="circolor"
+          style="border-radius: 100%"
+        /><br />
 
-        <button type="submit" style="color: black;">Submit</button>
+        <button type="submit" style="color: black">Submit</button>
       </form>
-      <button onclick="submitForm(event)" style="color: black; float: right; padding: 5px; border-radius: 15px;">Start Game</button>
-      <button onclick="window.location.reload()" style="color: black; float: right; padding: 5px; border-radius: 15px;">Start Over</button>
+      <form
+        id="logInUserForm"
+        onsubmit="submitLogIn(event)"
+        enctype="multipart/form-data"
+        style="margin-top: 5px; margin-bottom: 5px"
+      >
+        <h1>Already have an account? Log in here!</h1>
+        <label for="usernameLogIn">* Username:</label>
+        <input
+          type="text"
+          id="usernameLogIn"
+          name="usernameLogIn"
+          autocomplete="off"
+          placeholder="Nickname"
+          style="color: black"
+          required
+        /><br />
+
+        <label for="passwdLogIn">* Password:</label>
+        <input
+          type="password"
+          id="passwdLogIn"
+          name="passwdLogIn"
+          style="color: #000"
+          required
+        /><br />
+
+        <button type="submit" style="color: black">Submit</button>
+      </form>
+
+      <button onclick="disconnect()" style="color: black">Disconnect</button>
     </nav>
-    <br>
+    <br />
     <div id="maincontainer">
       <h1>Circle Mover!</h1>
-      <br>
-      <img src="" alt="" id="profilePicDisplay" style="width: 50px; height: auto;">
+      <br />
+      <img
+        src=""
+        alt=""
+        id="profilePicDisplay"
+        style="width: 50px; height: auto"
+      />
       <div>
-        <h2>High Score: </h2>
+        <h2>High Score:</h2>
         <p id="highScoreDisplay">0</p>
-        <br>¨¨¨¨¨¨¨¨¨¨
-        <h2>Score: </h2>
+        <br />¨¨¨¨¨¨¨¨¨¨
+        <h2>Score:</h2>
         <p id="scoreDisplay">0</p>
       </div>
       <canvas id="myCanvas" width="600" height="600"></canvas>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
-    const canvas = document.getElementById("myCanvas")
-    const ctx = canvas.getContext("2d")
-    const devicePixelRatio = window.devicePixelRatio || 1;
-    canvas.width = canvas.width * devicePixelRatio;
-    canvas.height = canvas.height * devicePixelRatio;
-    ctx.scale(devicePixelRatio, devicePixelRatio);
-    ctx.imageSmoothingEnabled = false;
+      const canvas = document.getElementById("myCanvas");
+      const ctx = canvas.getContext("2d");
+      const devicePixelRatio = window.devicePixelRatio || 1;
+      canvas.width = canvas.width * devicePixelRatio;
+      canvas.height = canvas.height * devicePixelRatio;
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+      ctx.imageSmoothingEnabled = false;
 
-    const socket = io();
-    const speed = 2;
-    let circle = null;
-    let username = "";
-    let users = {};
-    let foods = [];
-    const movement = {
-      up: false,
-      down: false,
-      left: false,
-      right: false
-    };
+      const socket = io();
+      const speed = 2;
+      let circle = null;
+      let username = "";
+      let users = {};
+      let foods = [];
+      const movement = {
+        up: false,
+        down: false,
+        left: false,
+        right: false,
+      };
 
-    function getRandomInt(min, max) {
-      const minCeiled = Math.ceil(min);
-      const maxFloored = Math.floor(max);
-      return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
-    }
-
-    class Circle {
-      constructor(id, username, x, y, radius, color) {
-        this.id = id;
-        this.username = username;
-        this.x = x;
-        this.y = y;
-        this.radius = radius;
-        this.color = color;
+      function getRandomInt(min, max) {
+        const minCeiled = Math.ceil(min);
+        const maxFloored = Math.floor(max);
+        return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
       }
 
-      draw(ctx) {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-        ctx.fillStyle = this.color;
-        ctx.fill();
-        ctx.stroke();
-        ctx.font = '8px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = 'white';
-        ctx.fillText(this.username, this.x, this.y);
-      }
+      class Circle {
+        constructor(id, username, x, y, radius, color) {
+          this.id = id;
+          this.username = username;
+          this.x = x;
+          this.y = y;
+          this.radius = radius;
+          this.color = color;
+        }
 
-      move(dx, dy, speed) {
-        this.x += dx * speed;
-        this.y += dy * speed;
-      }
-    }
+        draw(ctx) {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+          ctx.fillStyle = this.color;
+          ctx.fill();
+          ctx.stroke();
+          ctx.font = "8px Arial";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = "white";
+          ctx.fillText(this.username, this.x, this.y);
+        }
 
-    class Food {
-      constructor(x, y, radius, color) {
-        this.x = x;
-        this.y = y;
-        this.radius = radius;
-        this.color = color;
-      }
-
-      draw(ctx) {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-        ctx.fillStyle = this.color;
-        ctx.fill();
-        ctx.stroke();
-      }
-    }
-
-    function drawAllUsers() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (const userId in users) {
-        const user = users[userId];
-        user.draw(ctx);
-      }
-    }
-
-    function drawAllFoods() {
-      for (const food of foods) {
-        food.draw(ctx);
-      }
-    }
-
-    const keyUpdateInterval = 16;
-    let keyUpdateTimer;
-
-    function handleKeyPress(event) {
-      switch (event.key) {
-        case "ArrowUp":
-        case "w":
-          movement.up = true;
-          break;
-        case "ArrowDown":
-        case "s":
-          movement.down = true;
-          break;
-        case "ArrowLeft":
-        case "a":
-          movement.left = true;
-          break;
-        case "ArrowRight":
-        case "d":
-          movement.right = true;
-          break;
-      }
-
-      if (!keyUpdateTimer) {
-        keyUpdateTimer = setInterval(updatePosition, keyUpdateInterval);
-      }
-    }
-
-    function handleKeyRelease(event) {
-      switch (event.key) {
-        case "ArrowUp":
-        case "w":
-          movement.up = false;
-          break;
-        case "ArrowDown":
-        case "s":
-          movement.down = false;
-          break;
-        case "ArrowLeft":
-        case "a":
-          movement.left = false;
-          break;
-        case "ArrowRight":
-        case "d":
-          movement.right = false;
-          break;
-      }
-
-      if (!movement.up && !movement.down && !movement.left && !movement.right) {
-        clearInterval(keyUpdateTimer);
-        keyUpdateTimer = null;
-      }
-    }
-
-    function isCollision(circleX, circleY, circleRadius, foodX, foodY, foodRadius) {
-      const dx = circleX - foodX;
-      const dy = circleY - foodY;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      return distance < circleRadius + foodRadius;
-    }
-
-    function handleCollisions() {
-      for (let i = foods.length - 1; i >= 0; i--) {
-        if (isCollision(circle.x, circle.y, circle.radius, foods[i].x, foods[i].y, foods[i].radius)) {
-          foods.splice(i, 1);
-          socket.emit("foodEaten", { foodIndex: i, playerId: socket.id });
+        move(dx, dy, speed) {
+          this.x += dx * speed;
+          this.y += dy * speed;
         }
       }
-    }
 
-    function updatePosition() {
-      let dx = 0;
-      let dy = 0;
+      class Food {
+        constructor(x, y, radius, color) {
+          this.x = x;
+          this.y = y;
+          this.radius = radius;
+          this.color = color;
+        }
 
-      if (movement.up) dy -= 1;
-      if (movement.down) dy += 1;
-      if (movement.left) dx -= 1;
-      if (movement.right) dx += 1;
-
-      if (dx !== 0 || dy !== 0) {
-        circle.move(dx, dy, speed);
-        circle.draw(ctx);
-        socket.emit("updatePosition", { id: socket.id, x: circle.x, y: circle.y, color: circle.color, username: circle.username })
-        handleCollisions();
+        draw(ctx) {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+          ctx.fillStyle = this.color;
+          ctx.fill();
+          ctx.stroke();
+        }
       }
-    }
 
-  let disconnUsername = null;
+      function drawAllUsers() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (const userId in users) {
+          const user = users[userId];
+          user.draw(ctx);
+        }
+      }
 
-  function submitForm(event) {
-    event.preventDefault();
-    const form = document.getElementById("addUserForm");
-    const formData = new FormData(form);
-    let username = "";
-    let favColor = "";
-    const circleX = 50;
-    const circleY = 50;
-    const circleRadius = 20;
+      function drawAllFoods() {
+        for (const food of foods) {
+          food.draw(ctx);
+        }
+      }
 
-    fetch('/addUser', {
-      method: 'POST',
-      body: formData,
-    })
-    .then(response => response.text())
-    .then(() => {
-      return fetch('/updateUserInfo');
-    })
-        .then(response => response.json())
-        .then(data => {
-          disconnUsername = data.usernameVal;
-          console.log("babonga logg data: ", data);
-          console.log("knasig loggning: ", data.usernameVal, data.colorVal, data.hiscoreVal, data.profilePicVal);
-          username = data.usernameVal;
-          favColor = data.colorVal;
-          if (data.hiscoreVal == null || 0 || "0") {
-            document.getElementById("highScoreDisplay").innerHTML = "0";
-          } else {
-            document.getElementById("highScoreDisplay").innerHTML = data.hiscoreVal;
+      const keyUpdateInterval = 16;
+      let keyUpdateTimer;
+
+      function handleKeyPress(event) {
+        switch (event.key) {
+          case "ArrowUp":
+          case "w":
+            movement.up = true;
+            break;
+          case "ArrowDown":
+          case "s":
+            movement.down = true;
+            break;
+          case "ArrowLeft":
+          case "a":
+            movement.left = true;
+            break;
+          case "ArrowRight":
+          case "d":
+            movement.right = true;
+            break;
+        }
+
+        if (!keyUpdateTimer) {
+          keyUpdateTimer = setInterval(updatePosition, keyUpdateInterval);
+        }
+      }
+
+      function handleKeyRelease(event) {
+        switch (event.key) {
+          case "ArrowUp":
+          case "w":
+            movement.up = false;
+            break;
+          case "ArrowDown":
+          case "s":
+            movement.down = false;
+            break;
+          case "ArrowLeft":
+          case "a":
+            movement.left = false;
+            break;
+          case "ArrowRight":
+          case "d":
+            movement.right = false;
+            break;
+        }
+
+        if (
+          !movement.up &&
+          !movement.down &&
+          !movement.left &&
+          !movement.right
+        ) {
+          clearInterval(keyUpdateTimer);
+          keyUpdateTimer = null;
+        }
+      }
+
+      function isCollision(
+        circleX,
+        circleY,
+        circleRadius,
+        foodX,
+        foodY,
+        foodRadius
+      ) {
+        const dx = circleX - foodX;
+        const dy = circleY - foodY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance < circleRadius + foodRadius;
+      }
+
+      function handleCollisions() {
+        for (let i = foods.length - 1; i >= 0; i--) {
+          if (
+            isCollision(
+              circle.x,
+              circle.y,
+              circle.radius,
+              foods[i].x,
+              foods[i].y,
+              foods[i].radius
+            )
+          ) {
+            foods.splice(i, 1);
+            socket.emit("foodEaten", { foodIndex: i, playerId: socket.id });
           }
-          console.log("bingabongabinga loggning: ", username, "favColor");
-          circle = new Circle(socket.id, username, circleX, circleY, circleRadius, favColor);
-          users[socket.id] = circle;
-          socket.emit("newUser", { username, color: favColor, x: circleX, y: circleY, canvasWidth: canvas.width, canvasHeight: canvas.height });
-          document.addEventListener("keydown", handleKeyPress);
-          document.addEventListener("keyup", handleKeyRelease);
-          document.getElementById("addUserForm").style.display = "none";
-        })
-        .catch(error => console.error('Error updating user info:', error));
-  }
-
-  function saveHighScore() {
-      const currentScore = parseInt(document.getElementById("scoreDisplay").innerHTML);
-      if (disconnUsername) {
-        socket.emit('saveHighScore', { disconnUsername, score: currentScore });
-      }
-    }
-  
-    socket.on("updateFoods", ({ foods: updatedFoods, playerId, newRadius }) => {
-      foods = updatedFoods.map(food => new Food(food.x, food.y, food.radius, food.color));
-      drawAllFoods();
-      if (users[playerId]) {
-        users[playerId].radius = newRadius;
-        if (playerId === socket.id) {
-          circle.radius = newRadius;
-          document.getElementById("scoreDisplay").innerHTML = `${((circle.radius-20) * 10)}`;
         }
       }
-    });
 
-    socket.on("updateUsers", (data) => {
-      users = {};
-      for (const userId in data.users) {
-        const userData = data.users[userId];
-        users[userId] = new Circle(userData.id, userData.username, userData.x, userData.y, userData.circleRadius, userData.color)
-      }
-      foods = data.foods.map(food => new Food(food.x, food.y, food.radius, food.color));
-      drawAllUsers();
-      drawAllFoods();
-    });
+      function updatePosition() {
+        let dx = 0;
+        let dy = 0;
 
-    socket.on("updatePosition", (data) => {
-      if (users[data.id]) {
-        users[data.id].x = data.x;
-        users[data.id].y = data.y;
-        users[data.id].username = data.username;
-      drawAllUsers();
-      drawAllFoods();
-      }
-    });
+        if (movement.up) dy -= 1;
+        if (movement.down) dy += 1;
+        if (movement.left) dx -= 1;
+        if (movement.right) dx += 1;
 
-    socket.on("newUserAndFoods", (data) => {
-      users = {};
-      for (const userId in data.users) {
-        const userData = data.users[userId];
-        users[userId] = new Circle(userData.id, userData.username, userData.x, userData.y, userData.circleRadius, userData.color);
+        if (dx !== 0 || dy !== 0) {
+          circle.move(dx, dy, speed);
+          circle.draw(ctx);
+          socket.emit("updatePosition", {
+            id: socket.id,
+            x: circle.x,
+            y: circle.y,
+            color: circle.color,
+            username: circle.username,
+          });
+          handleCollisions();
+        }
       }
-      foods = data.foods.map(food => new Food(food.x, food.y, food.radius, food.color));
-      drawAllUsers();
-      drawAllFoods();
-    });
-    
-    socket.on("disconnect", saveHighScore);
+
+      let disconnUsername = null;
+      let isLogInForm = false;
+
+      function submitLogIn(event) {
+        isLogInForm = true;
+        submitForm(event);
+      }
+
+      function submitForm(event) {
+        event.preventDefault();
+        let form;
+        let formData;
+        if (isLogInForm) {
+          form = document.getElementById("logInUserForm");
+          formData = new FormData(form);
+        }
+        if (!isLogInForm) {
+          form = document.getElementById("addUserForm");
+          formData = new FormData(form);
+        }
+        let username = "";
+        let favColor = "";
+        const circleX = 50;
+        const circleY = 50;
+        const circleRadius = 20;
+
+        if (!isLogInForm) {
+          fetch("/addUser", {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => response.text())
+            .then(() => {
+              return fetch("/updateUserInfo");
+            })
+            .then((response) => response.json())
+            .then((data) => {
+              disconnUsername = data.usernameVal;
+              username = data.usernameVal;
+              favColor = data.colorVal;
+              document.getElementById("highScoreDisplay").innerHTML = "0";
+              circle = new Circle(
+                socket.id,
+                username,
+                circleX,
+                circleY,
+                circleRadius,
+                favColor
+              );
+              users[socket.id] = circle;
+              socket.emit("newUser", {
+                username,
+                color: favColor,
+                x: circleX,
+                y: circleY,
+                canvasWidth: canvas.width,
+                canvasHeight: canvas.height,
+              });
+              document.addEventListener("keydown", handleKeyPress);
+              document.addEventListener("keyup", handleKeyRelease);
+              document.getElementById("addUserForm").style.display = "none";
+              document.getElementById("logInUserForm").style.display = "none";
+            })
+            .catch((error) =>
+              console.error("Error updating user info:", error)
+            );
+        }
+        if (isLogInForm) {
+          let username = document.getElementById("usernameLogIn").value
+          let passwd = document.getElementById("passwdLogIn").value
+          fetch("/logInUser", {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "POST",
+            body: JSON.stringify({username, passwd}),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              disconnUsername = data.usernameVal;
+              username = data.usernameVal;
+              favColor = data.colorVal;
+              if (
+                data.hiscoreVal == null ||
+                data.hiscoreVal === 0 ||
+                data.hiscoreVal === "0"
+              ) {
+                document.getElementById("highScoreDisplay").innerHTML = "0";
+              } else {
+                document.getElementById("highScoreDisplay").innerHTML =
+                  data.hiscoreVal;
+              }
+              circle = new Circle(
+                socket.id,
+                username,
+                circleX,
+                circleY,
+                circleRadius,
+                favColor
+              );
+              users[socket.id] = circle;
+              socket.emit("newUser", {
+                username,
+                color: favColor,
+                x: circleX,
+                y: circleY,
+                canvasWidth: canvas.width,
+                canvasHeight: canvas.height,
+              });
+              document.addEventListener("keydown", handleKeyPress);
+              document.addEventListener("keyup", handleKeyRelease);
+              document.getElementById("logInUserForm").style.display = "none";
+              document.getElementById("addUserForm").style.display = "none";
+            })
+            .catch((error) =>
+              console.error("Error updating user info:", error)
+            );
+        }
+      }
+
+      function disconnect() {
+        saveHighScore();
+      }
+
+      function saveHighScore() {
+        const currentScore = parseInt(
+          document.getElementById("scoreDisplay").innerHTML
+        );
+        if (disconnUsername) {
+          socket.emit("saveHighScore", {
+            disconnUsername,
+            score: currentScore,
+          });
+        }
+        window.location.reload();
+      }
+
+      socket.on(
+        "updateFoods",
+        ({ foods: updatedFoods, playerId, newRadius }) => {
+          foods = updatedFoods.map(
+            (food) => new Food(food.x, food.y, food.radius, food.color)
+          );
+          drawAllFoods();
+          if (users[playerId]) {
+            users[playerId].radius = newRadius;
+            if (playerId === socket.id) {
+              circle.radius = newRadius;
+              document.getElementById("scoreDisplay").innerHTML = `${
+                Math.round((circle.radius - 20) * 10)
+              }`;
+            }
+          }
+        }
+      );
+
+      socket.on("updateUsers", (data) => {
+        users = {};
+        for (const userId in data.users) {
+          const userData = data.users[userId];
+          users[userId] = new Circle(
+            userData.id,
+            userData.username,
+            userData.x,
+            userData.y,
+            userData.circleRadius,
+            userData.color
+          );
+        }
+        foods = data.foods.map(
+          (food) => new Food(food.x, food.y, food.radius, food.color)
+        );
+        drawAllUsers();
+        drawAllFoods();
+      });
+
+      socket.on("updatePosition", (data) => {
+        if (users[data.id]) {
+          users[data.id].x = data.x;
+          users[data.id].y = data.y;
+          users[data.id].username = data.username;
+          drawAllUsers();
+          drawAllFoods();
+        }
+      });
+
+      socket.on("newUserAndFoods", (data) => {
+        users = {};
+        for (const userId in data.users) {
+          const userData = data.users[userId];
+          users[userId] = new Circle(
+            userData.id,
+            userData.username,
+            userData.x,
+            userData.y,
+            userData.circleRadius,
+            userData.color
+          );
+        }
+        foods = data.foods.map(
+          (food) => new Food(food.x, food.y, food.radius, food.color)
+        );
+        drawAllUsers();
+        drawAllFoods();
+      });
+
     </script>
   </body>
 </html>
